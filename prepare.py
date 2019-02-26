@@ -1,4 +1,6 @@
-from cauli.person_to_bitmap_vector import *
+import os.path
+import sys
+from person_to_bitmap_vector import *
 import os
 from argparse import ArgumentParser
 from subprocess import call
@@ -26,33 +28,35 @@ if not os.path.exists(directory):
     os.makedirs(directory)
 
 file_name = args.filename
-movie_name = file_name.rsplit(".")[0]
+# file_name = "~/thesis/pyannote-date/friends1_720.mp4"
+movie_name = file_name.rsplit("/")[-1].rsplit(".")[0]
 shots_name = movie_name + ".shots.json"
 track_name = movie_name + ".track.txt"
 landmark_name = movie_name + ".landmarks.txt"
 embeddings = movie_name + ".embedding.txt"
 demo = movie_name + ".track.mp4"
-#
-call(["python", "../pyannote-video/scripts/pyannote-structure.py",
+
+
+call(["python", "./scripts/pyannote-structure.py",
       "shot", "--verbose", file_name,
       directory + shots_name])
 print("done with shots.")
 
-call(["python", "../pyannote-video/scripts/pyannote-face.py",
+call(["python", "./scripts/pyannote-face.py",
       "track", "--verbose", "--every=0.5", file_name,
       directory + shots_name,
       directory + track_name])
 print("done with track.")
 
-call(["python", "../pyannote-video/scripts/pyannote-face.py", "demo",
-      "/home/buddha/thesis/pyannote-data/friends/" + file_name,
+call(["python", "./scripts/pyannote-face.py", "demo",
+      file_name,
       directory + track_name,
       directory + demo])
 
 print("done with demo.")
 
-call(["python", "../pyannote-video/scripts/pyannote-face.py",
-      "extract", "--verbose", "../pyannote-data/friends/" + file_name,
+call(["python", "./scripts/pyannote-face.py",
+      "extract", "--verbose", file_name,
       "./data/" + str(vid_num) + "/" + track_name,
       "../dlib-models/shape_predictor_68_face_landmarks.dat",
       "../dlib-models/dlib_face_recognition_resnet_model_v1.dat",

@@ -57,6 +57,7 @@ def cluster_and_save(embeddings_file, vid_num):
 
     faiss = FaissWrapper()
 
+    data = None
     data_matrix = "./data/person_to_video_matrix.csv"
     if (os.path.exists(data_matrix)):
         df_matrix = pd.read_csv(data_matrix, sep='\t')
@@ -104,8 +105,13 @@ def cluster_and_save(embeddings_file, vid_num):
                 df_matrix.iloc[real_pos,
                                df_matrix.columns.get_loc(video_num)] = 1
             else:
-                df2 = pd.DataFrame({'person': r[0], video_num: 1})
-                df_matrix = pd.concat([df_matrix, df2], join='inner')
+
+                df_len = len(df_matrix)
+                df_matrix.loc[df_len] = 0
+                df_matrix.at[df_len, video_num] = 1
+                df_matrix.at[df_len, 'person'] = r[0].tolist()
+
+
             # *************************************************************************
     else:
         df_matrix = pd.DataFrame(columns=['person', 1])
@@ -118,8 +124,10 @@ def cluster_and_save(embeddings_file, vid_num):
             df_len = len(df_matrix)
             df_matrix = df_matrix.append(
                 {'person': [], 1: int(1)}, ignore_index=True)
+            df_matrix = df_matrix.fillna(0)
             df_matrix.at[df_len, 'person'] = q.tolist()
-
+    print(df_matrix)
+    exit(0)
     cols = list(df_matrix)
     # cols.insert(0, cols.pop(cols.index('person')))
     df_matrix = df_matrix.ix[:, cols]
@@ -128,6 +136,9 @@ def cluster_and_save(embeddings_file, vid_num):
     # #
     with open(file_name, 'a') as f:
         df_matrix.to_csv(data_matrix, sep='\t', index=False)
+
+    if not data.any():
+        data = utils.conv_to_np_float32(df_matrix['person'])
 
     sorted_segments = []
     starting_point = clust2.starting_point
@@ -164,6 +175,9 @@ def cluster_and_save(embeddings_file, vid_num):
                 if not I == [[]]:
                     pos = I[0][0]
                     z = data[pos]
+                    print("z type : ", type(z))
+                    print("j type : ", type(j))
+                    exit(0)
                     dist = numpy.linalg.norm(z - j)
                     if dist < min:
                         real_pos = pos
@@ -261,6 +275,6 @@ def cluster_and_save_naive(embeddings_file, vid_num):
         person_segment_naive.to_csv(person_segment_path, sep='\t', index=False)
 
 
-# cluster_and_save("./data/"+ str(8) + "/"+  "friends4.embedding.txt", 8)
-cluster_and_save("./data/" + str(1) + "/" + "bbt1.embedding.txt", 1)
+cluster_and_save("./data/" + str(2) + "/" + "bbt1.embedding.txt", 2)
+# cluster_and_save("./data/" + str(1) + "/" + "friends1_720.embedding.txt", 1)
 #
